@@ -91,7 +91,7 @@ class ResPartner(orm.Model):
 
         return self.write(cursor, uid, partner_id, vals, context=context)
 
-    def copy_data(self, cr, uid, _id, default=None, context=None):
+    def copy_data(self, cr, uid, id, default=None, context=None):
         """
         Avoid to replicate the firstname into the name when duplicating a
         partner
@@ -101,13 +101,13 @@ class ResPartner(orm.Model):
             default = default.copy()
             default['lastname'] = (
                 _('%s (copy)') % self.read(
-                    cr, uid, [_id], ['lastname'], context=context
+                    cr, uid, [id], ['lastname'], context=context
                     )[0]['lastname']
             )
             if default.get('name'):
                 del(default['name'])
         return super(ResPartner, self).copy_data(
-            cr, uid, _id, default, context=context)
+            cr, uid, id, default, context=context)
 
     def create(self, cursor, uid, vals, context=None):
         """
@@ -115,15 +115,12 @@ class ResPartner(orm.Model):
         even if we use fnct_inv: otherwise we can't create entry because
         lastname is mandatory and module will not install if there is demo data
         """
-        to_use = vals
-        if 'name' in vals:
-            corr_vals = vals.copy()
-            if vals.get('name'):
-                corr_vals['lastname'] = corr_vals['name']
+        corr_vals = vals.copy()
+        if corr_vals.get('name'):
+            corr_vals['lastname'] = corr_vals['name']
             del(corr_vals['name'])
-            to_use = corr_vals
         return super(ResPartner, self).create(
-            cursor, uid, to_use, context=context)
+            cursor, uid, corr_vals, context=context)
 
     _columns = {'name': fields.function(_compute_name_custom, string="Name",
                                         type="char", store=True,
